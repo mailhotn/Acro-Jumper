@@ -56,4 +56,4 @@ lambdan = A/B;
 eqs_slip = M*ddq + C*dq + G == (Wn - mu*sigma*Wt).'*lambdan + Fq;
 sol_slip = solve(eqs_slip,ddq);
 %% Impact Law
-Aim = simplify(W*M^-1*W.')
+Aim = simplify(W*M^-1*W.');

@@ -8,6 +8,8 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
         g  = 10;                    % earth's gravity
         mu = 0.3;                   % coefficient of friction
         jumped = 0;                 % did it jump?
+        landed = 0;                 % did it land?
+        jumpedAgain = 0;            % did it jump more than once?
         LiftOff = [];               % lift off coordinates
         LandingQR = [];             % coordinates of Q/R at landing
         
@@ -141,15 +143,15 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     % Event 1 - Stick -> Slip
                     [Ft, Fn] = GetReactionForces(AJ, X);
                     value(1) =  abs(AJ.mu*Fn) - abs(Ft);
-%                     % Event 3 - Liftoff!
-%                     value(3) = Fn;  
+                    % Event 3 - Liftoff!
+                    value(3) = Fn;  
                     % Event 5 - Q collision
                     Q = GetPos(AJ, X, 'Q');
                     value(5) = Q(2);
                     % Event 6 - R collision
                     R = GetPos(AJ, X, 'R');
                     value(6) = R(2);
-                    if ~AJ.jumped
+                    if ~AJ.landed % Check the following only before landing
                         % Event 7 - Too much rotation
                         Q = GetPos(AJ, X, 'Q');
                         P = GetPos(AJ, X, 'P');
@@ -175,7 +177,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     % Event 6 - R collision
                     R = GetPos(AJ, X, 'R');
                     value(6) = R(2);
-                    if ~AJ.jumped
+                    if ~AJ.landed % Check the following only before landing
                         % Event 7 - Too much rotation
                         Q = GetPos(AJ, X, 'Q');
                         P = GetPos(AJ, X, 'P');
@@ -198,14 +200,16 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     % Event 6 - R collision
                     R = GetPos(AJ, X, 'R');
                     value(6) = R(2);
-                    % Event 7 - Too much rotation
-                    P = GetPos(AJ, X, 'P');
-                    RmP = R - P;
-                    value(7) = pi/3 - abs(atan(RmP(1)/RmP(2)));
-                    % Event 8 - Q isn't below R
-                    value(8) = R(2) - Q(2);
-                    % Event 9 - Q isn't above P
-                    value(9) = Q(2) - P(2);
+                    if ~AJ.landed % Check the following only before landing
+                        % Event 7 - Too much rotation
+                        P = GetPos(AJ, X, 'P');
+                        RmP = R - P;
+                        value(7) = pi/3 - abs(atan(RmP(1)/RmP(2)));
+                        % Event 8 - Q isn't below R
+                        value(8) = R(2) - Q(2);
+                        % Event 9 - Q isn't above P
+                        value(9) = Q(2) - P(2);
+                    end
                     % Event 10 - abs(th2)<180 
                     value(10) = pi - abs(X(7));  
             end 
@@ -221,12 +225,13 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
             -AJ.l*AJ.m*sin(th1 + th2),                AJ.l*AJ.m*cos(th1 + th2),       (2*AJ.l^2*AJ.m*(3*cos(th2) + 2))/3,                  (4*AJ.l^2*AJ.m)/3];
         
         W = [1 0 0 0; 0 1 0 0 ];
+        A = W*inv(M)*W.';
         
-        A = [ (4*(27*cos(2*th1) + 9*cos(2*th2) - 3*cos(2*th1 + 2*th2) - 41))/(AJ.m*(18*cos(2*th2) - 82)),                          (6*(9*sin(2*th1) - sin(2*th1 + 2*th2)))/(AJ.m*(9*cos(2*th2) - 41));
-            (6*(9*sin(2*th1) - sin(2*th1 + 2*th2)))/(AJ.m*(9*cos(2*th2) - 41)), -(4*(27*cos(2*th1) - 9*cos(2*th2) - 3*cos(2*th1 + 2*th2) + 41))/(AJ.m*(18*cos(2*th2) - 82))];
+%         A = [ (4*(27*cos(2*th1) + 9*cos(2*th2) - 3*cos(2*th1 + 2*th2) - 41))/(AJ.m*(18*cos(2*th2) - 82)),                          (6*(9*sin(2*th1) - sin(2*th1 + 2*th2)))/(AJ.m*(9*cos(2*th2) - 41));
+%             (6*(9*sin(2*th1) - sin(2*th1 + 2*th2)))/(AJ.m*(9*cos(2*th2) - 41)), -(4*(27*cos(2*th1) - 9*cos(2*th2) - 3*cos(2*th1 + 2*th2) + 41))/(AJ.m*(18*cos(2*th2) - 82))];
         
     
-        Lambda1 = [0 -Xi(4)/A(2,2)].'; Lambda2 = -A^-1*[Xi(2) Xi(4)].';
+        Lambda1 = [0 -Xi(4)/A(2,2)].'; Lambda2 = -inv(A)*([Xi(2) Xi(4)].');
         if AJ.mu*Lambda2(2) >= abs(Lambda2(1))
             Kappa = 1;
         else
@@ -234,7 +239,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
         end
         Lambda = Lambda1 + Kappa*(Lambda2 - Lambda1);
         Xf = Xi;
-        sol = M\(W.'*Lambda);
+        sol = inv(M)*W.'*Lambda;
         Xf(2) = Xi(2) + sol(1);
         Xf(4) = Xi(4) + sol(2);
         Xf(6) = Xi(6) + sol(3);
@@ -251,46 +256,46 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                 case 2 % Slip -> Stick
                     Xf = Xi;
                     AJ.Phase = 'Stick';
-                case 3 % Slip -> Flight
+                case 3 % Liftoff
                     Xf = Xi;
-                    if ~AJ.jumped
-                        AJ.LiftOff = Xi(1);
+                    if ~AJ.jumped 
+                        AJ.LiftOff = Xi(1); % Save First Liftoff Point
+                    else
+                        AJ.jumpedAgain = 1;
                     end
                     AJ.jumped = 1;
                     AJ.Phase = 'Flight';
                 case 4 % P collision
                     Xf = impact_law(AJ, Xi);
                     if abs(Xf(2)) > 0
-                        AJ.sgn_slip = sign(Xf(2));
                         AJ.Phase = 'Slip';
+                        AJ.sgn_slip = sign(Xf(2));
                     else
                         AJ.Phase = 'Stick';
-                    end 
+                        [Ft, Fn] = AJ.GetReactionForces(Xf);
+                        if abs(Ft) >= AJ.mu*abs(Fn)
+                            AJ.sgn_slip = -sign(Ft);
+                            AJ.Phase = 'Slip';
+                        end
+                    end
+                    AJ.landed = 1;
                 case 5 % Q collision
                     LandPos =  AJ.GetPos(Xi, 'Q');
                     AJ.LandingQR = LandPos(1);
                     Xf = Xi;
-%                     disp(['Event Index: ' num2str(iEvent) ' Q collision']);
                 case 6 % R collision
                     LandPos =  AJ.GetPos(Xi, 'R');
                     AJ.LandingQR = LandPos(1);
                     Xf = Xi;
-%                     disp(['Event Index: ' num2str(iEvent) ' R collision']);
                 case 7 % Too much rotation
                     Xf = Xi;
-%                     disp(['Event Index: ' num2str(iEvent) ' Too much rotation']);
                 case 8 % Q isn't below R
                     Xf = Xi;
-%                     disp(['Event Index: ' num2str(iEvent) ' Q isn''t below R']);
                 case 9 % Q isn't above P
                     Xf = Xi;
-%                     disp(['Event Index: ' num2str(iEvent) ' Q isn''t above P']);
                 case 10 % abs(th2)<180
                     Xf = Xi;
-%                     disp(['Event Index: ' num2str(iEvent) ' abs(th2)<180']);
             end
         end     
     end
 end
-
-
