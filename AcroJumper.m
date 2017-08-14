@@ -23,7 +23,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
         tau = [];
         
         % Event index
-        nEvents = 11;
+        nEvents = 10;
         % 1 - Stick -> Slip
         % 2 - Slip -> Stick
         % 3 - Liftoff!
@@ -34,7 +34,6 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
         % 8 - Q isn't below R
         % 9 - Q isn't above P
         % 10 - abs(th2)<180 
-        % 11 - Painleve paradox
         
         % Render parameters        
         link_width=0.025;
@@ -138,7 +137,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
         function [value, isterminal, direction] = Events(AJ, X)
             value = ones(AJ.nEvents,1);
             isterminal = ones(AJ.nEvents,1);
-            direction = [-1, -1, -1, -1, -1, -1, -1, 0, 0, -1, -1].';
+            direction = [-1, -1, -1, -1, -1, -1, -1, 0, 0, -1].';
             switch AJ.Phase
                 case 'Stick'
                     % Event 1 - Stick -> Slip
@@ -166,8 +165,6 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     end
                     % Event 10 - abs(th2)<180
                     value(10) = pi - abs(X(7));
-                    % Event 11 - Painleve paradox
-                    value(11) = -(54*cos(2*th1) - 18*cos(2*th2) - 6*cos(2*th1 + 2*th2) + 54*AJ.mu*AJ.sgn_slip*sin(2*th1) - 6*AJ.mu*AJ.sgn_slip*sin(2*th1 + 2*th2) + 82)/(AJ.m*(9*cos(2*th2) - 41));
                 case 'Slip'
                     % Event 2 - Slip -> Stick
                     value(2) = X(2)/AJ.sgn_slip;
@@ -194,8 +191,6 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     end
                     % Event 10 - abs(th2)<180
                     value(10) = pi - abs(X(7));
-                    % Event 11 - Painleve paradox
-                    value(11) = -(54*cos(2*th1) - 18*cos(2*th2) - 6*cos(2*th1 + 2*th2) + 54*AJ.mu*AJ.sgn_slip*sin(2*th1) - 6*AJ.mu*AJ.sgn_slip*sin(2*th1 + 2*th2) + 82)/(AJ.m*(9*cos(2*th2) - 41));
                 case 'Flight'
                     % Event 4 - P collision
                     value(4) = X(3);
@@ -217,8 +212,6 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     end
                     % Event 10 - abs(th2)<180 
                     value(10) = pi - abs(X(7)); 
-                    % Event 11 - Painleve paradox
-                    value(11) = -(54*cos(2*th1) - 18*cos(2*th2) - 6*cos(2*th1 + 2*th2) + 54*AJ.mu*AJ.sgn_slip*sin(2*th1) - 6*AJ.mu*AJ.sgn_slip*sin(2*th1 + 2*th2) + 82)/(AJ.m*(9*cos(2*th2) - 41));
             end 
         end
         
@@ -272,6 +265,10 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     end
                     AJ.jumped = 1;
                     AJ.Phase = 'Flight';
+                    Xdot = AJ.Derivative([], Xi);
+                    if Xdot(4) < 0
+                        disp('Painleve paradox');
+                    end
                 case 4 % P collision
                     Xf = impact_law(AJ, Xi);
                     if abs(Xf(2)) > 0
@@ -302,9 +299,6 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     Xf = Xi;
                 case 10 % abs(th2)<180
                     Xf = Xi;
-                case 11 % Painleve paradox
-                    Xf = Xi;
-                    disp('Painleve paradox');
             end
         end     
     end
