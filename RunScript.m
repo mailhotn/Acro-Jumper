@@ -1,14 +1,12 @@
 AJ = AcroJumper;
 Ft = []; Fn = [];
-% Control = Controller(Params(3), Params(4), Params(5:8),Params(9:10),Params(11:12)...
-%         ,Params(13), Params(14:17),Params(18:19),Params(20:21));
-    
-%     Control = ControllerF(Params(3:21));
+liftoff = load('Workspaces/GAsol_fit-4.1354_d14_h11_m41.mat');
+liftoff = liftoff.GAsol;
 
-Control = ControllerOrd2Seg(Params(3:5),Params(6),Params(7),Params(8),Params(9));
-
+Control = ControllerOrd2Seg([0.0558, Params(1:2)],-10,Params(3),Params(4),Params(5));
 Sim = Simulation(AJ, Control);
-Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].';  
+
+Sim.IC = [0 0 0 0 liftoff(1) 0 liftoff(2) 0].'; 
 Sim.GetInitPhase;
 opt = odeset('reltol', 1e-12, 'abstol', 1e-12, 'Events', @Sim.Events);
 EndCond = 0;
@@ -18,21 +16,21 @@ for ii = 1:length(X)
     [Ft(ii) Fn(ii)] = AJ.GetReactionForces(X(ii,:)); %#ok
 end
 Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
-if Ie(end) >= 5
+if Ie(end) >= 3
     EndCond = 1;
 end
 while ~EndCond
     [tTime, tX, tTe, ~,tIe] = ode45(@Sim.Derivative,[Time(end) inf], Xf, opt);
     Ie = [Ie; tIe]; Te = [Te; tTe]; %#ok
     X  = [X; tX]; Time = [Time; tTime]; %#ok
-    for ii = 1:length(tX)
+    for ii = 1:length(tX(:,1))
         AJ.tau = Sim.Con.calc_tau(tTime(ii));
         [tFt(ii) tFn(ii)] = AJ.GetReactionForces(tX(ii,:)); %#ok
     end
     Ft = [Ft, tFt]; Fn = [Fn, tFn]; %#ok
     tFt = []; tFn = []; tX = []; tTime = [];
     Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
-    if Ie(end) >= 5
+    if Ie(end) >= 3
         EndCond = 1;
     end
 end
