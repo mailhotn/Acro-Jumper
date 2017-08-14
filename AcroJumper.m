@@ -228,7 +228,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
             -AJ.l*AJ.m*sin(th1 + th2),                AJ.l*AJ.m*cos(th1 + th2),       (2*AJ.l^2*AJ.m*(3*cos(th2) + 2))/3,                  (4*AJ.l^2*AJ.m)/3];
         
         W = [1 0 0 0; 0 1 0 0 ];
-        A = W*inv(M)*W.';
+        A = W*M^-1*W.';
         
 %         A = [ (4*(27*cos(2*th1) + 9*cos(2*th2) - 3*cos(2*th1 + 2*th2) - 41))/(AJ.m*(18*cos(2*th2) - 82)),                          (6*(9*sin(2*th1) - sin(2*th1 + 2*th2)))/(AJ.m*(9*cos(2*th2) - 41));
 %             (6*(9*sin(2*th1) - sin(2*th1 + 2*th2)))/(AJ.m*(9*cos(2*th2) - 41)), -(4*(27*cos(2*th1) - 9*cos(2*th2) - 3*cos(2*th1 + 2*th2) + 41))/(AJ.m*(18*cos(2*th2) - 82))];
@@ -242,7 +242,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
         end
         Lambda = Lambda1 + Kappa*(Lambda2 - Lambda1);
         Xf = Xi;
-        sol = inv(M)*W.'*Lambda;
+        sol = M^-1*W.'*Lambda;
         Xf(2) = Xi(2) + sol(1);
         Xf(4) = Xi(4) + sol(2);
         Xf(6) = Xi(6) + sol(3);
