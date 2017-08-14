@@ -5,7 +5,7 @@ Ft = []; Fn = [];
     
 %     Control = ControllerF(Params(3:21));
 
-Control = ControllerOrd2Seg(Params(3:5),Params(6),Params(7),Params(8),Params(9));
+Control = ControllerOrd2Seg([0.02,0.08,0.12],Params(6),Params(7),Params(8),Params(9));
 
 Sim = Simulation(AJ, Control);
 Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].';  
@@ -69,3 +69,5 @@ title('Tangent Reaction Force')
 xlabel('Time [sec]')
 ylabel('F_t [N]')
 
+load handel
+sound(y,Fs)

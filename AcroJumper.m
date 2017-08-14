@@ -74,11 +74,14 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
             end
         end
         
-        function [xdot, ydot] = GetVel(AJ, X, which) %#ok
+        function Vel = GetVel(AJ, X, which) 
             switch which
                 case 'P'
-                    xdot = X(2,:);
-                    ydot = X(4,:);
+                    Vel = [X(2),X(4)];
+                case 'CM'
+                    VCM1 = [ X(2) - X(6)*AJ.l*sin(X(5)), X(4) + X(6)*AJ.l*cos(X(5))];
+                    VCM2 = [ X(2) - X(6)*(AJ.l*sin(X(5) + X(7)) + 2*AJ.l*sin(X(5))) - X(8)*AJ.l*sin(X(5) + X(7)), X(4) + X(6)*(AJ.l*cos(X(5) + X(7)) + 2*AJ.l*cos(X(5))) + X(8)*AJ.l*cos(X(5) + X(7))];
+                    Vel = (VCM1+VCM2)/2;
                 otherwise
                     error('No such position');
             end
