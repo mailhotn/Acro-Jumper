@@ -7,7 +7,7 @@ AJ = AcroJumper;
         
 % Control = ControllerF(Params(3:21));
 
-Control = ControllerOrd2Seg([Params(3),Inf,Inf],10*sign(Params(4)),[],[],[]);
+Control = ControllerOrd2Seg([Inf,Inf,Inf],10*sign(Params(3)),[],[],[]);
 Sim = Simulation(AJ, Control);
 
 Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].';

@@ -5,9 +5,9 @@ Ft = []; Fn = [];
     
 %     Control = ControllerF(Params(3:21));
 
-Control = ControllerOrd2Seg([0.045696562079735,Inf,Inf],10*sign(Params(4)),[],[],[]);
+Control = ControllerOrd2Seg([0.05448,Inf,Inf],10*sign(Params(4)),10,[],[]);
 Sim = Simulation(AJ, Control);
-Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].';  
+Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].';
 Sim.GetInitPhase;
 opt = odeset('reltol', 1e-12, 'abstol', 1e-12, 'Events', @Sim.Events);
 EndCond = 0;

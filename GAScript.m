@@ -1,6 +1,6 @@
-nParams = 4;
-LB = [pi/18    ,-pi+0.001,0  ,-1];
-UB = [17/18*pi ,pi-0.001 ,0.1,1];
+nParams = 3;
+LB = [pi/18    ,-pi+0.001,-1];
+UB = [17/18*pi ,pi-0.001 ,1];
 options = gaoptimset('UseParallel',true,'PlotFcns',{@gaplotbestf,@gaplotbestindiv},'CrossoverFraction',0.6);
 [GAsol, fit] = ga(@GASim,nParams,[],[],[],[],LB,UB,[],[],options);
 c = clock;
