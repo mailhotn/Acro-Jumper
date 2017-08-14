@@ -5,7 +5,7 @@ Ft = []; Fn = [];
     
 %     Control = ControllerF(Params(3:21));
 
-Control = ControllerOrd2Seg([Params(3),Inf,Inf],10*sign(Params(4)),10,[],[]);
+Control = ControllerOrd2Seg([0.0545,Inf,Inf],10*sign(Params(4)),10,[],[]);
 Sim = Simulation(AJ, Control);
 Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].';  
 Sim.GetInitPhase;

@@ -37,4 +37,3 @@ while ~EndCond
 end
 fitness = FitLiftOff(AJ,X(end,:));
 end
-
