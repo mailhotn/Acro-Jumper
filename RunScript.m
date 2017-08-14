@@ -1,12 +1,12 @@
 AJ = AcroJumper;
 Ft = []; Fn = [];
-liftoff = load('Workspaces/GAsol_fit-4.1354_d14_h11_m41.mat');
-liftoff = liftoff.GAsol;
+% liftoff = load('Workspaces/GAsol_LO_fit-1.8175_d14_h13_m46.mat');
+% liftoff = liftoff.GAsol;
 
-Control = ControllerOrd2Seg([0.0558, Params(1:2)],-10,Params(3),Params(4),Params(5));
+Control = ControllerOrd2Seg(Params(3:5),Params(6),Params(7),Params(8),Params(9));
 Sim = Simulation(AJ, Control);
 
-Sim.IC = [0 0 0 0 liftoff(1) 0 liftoff(2) 0].'; 
+Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].'; 
 Sim.GetInitPhase;
 opt = odeset('reltol', 1e-12, 'abstol', 1e-12, 'Events', @Sim.Events);
 EndCond = 0;
@@ -16,7 +16,7 @@ for ii = 1:length(X)
     [Ft(ii) Fn(ii)] = AJ.GetReactionForces(X(ii,:)); %#ok
 end
 Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
-if Ie(end) >= 3
+if Ie(end) >= 5 || AJ.Painleve
     EndCond = 1;
 end
 while ~EndCond
@@ -30,7 +30,7 @@ while ~EndCond
     Ft = [Ft, tFt]; Fn = [Fn, tFn]; %#ok
     tFt = []; tFn = []; tX = []; tTime = [];
     Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
-    if Ie(end) >= 3
+    if Ie(end) >= 5 || AJ.Painleve
         EndCond = 1;
     end
 end

@@ -29,7 +29,7 @@ for ii = 1:length(Time)
     end
 end
 
-if ~AJ.jumped || ~isempty(find(Ie == 10))
+if ~AJ.jumped || ~isempty(find(Ie == 10)) || AJ.Painleve %#ok
     fitness = 100;
 end
 end

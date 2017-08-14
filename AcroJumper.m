@@ -12,7 +12,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
         jumpedAgain = 0;            % did it jump more than once?
         LiftOff = [];               % lift off coordinates
         LandingQR = [];             % coordinates of Q/R at landing
-        Painleve = [];
+        Painleve = 0;
         
         % Slip direction
         sgn_slip = [];
