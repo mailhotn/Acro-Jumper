@@ -5,8 +5,7 @@ Ft = []; Fn = [];
     
 %     Control = ControllerF(Params(3:21));
 
-Control = ControllerOrd2Seg([0.02,0.08,0.12],Params(6),Params(7),Params(8),Params(9));
-
+Control = ControllerOrd2Seg([Params(3),Inf,Inf],10*sign(Params(4)),10,[],[]);
 Sim = Simulation(AJ, Control);
 Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].';  
 Sim.GetInitPhase;
@@ -25,7 +24,7 @@ while ~EndCond
     [tTime, tX, tTe, ~,tIe] = ode45(@Sim.Derivative,[Time(end) inf], Xf, opt);
     Ie = [Ie; tIe]; Te = [Te; tTe]; %#ok
     X  = [X; tX]; Time = [Time; tTime]; %#ok
-    for ii = 1:length(tX)
+    for ii = 1:length(tX(:,1))
         AJ.tau = Sim.Con.calc_tau(tTime(ii));
         [tFt(ii) tFn(ii)] = AJ.GetReactionForces(tX(ii,:)); %#ok
     end

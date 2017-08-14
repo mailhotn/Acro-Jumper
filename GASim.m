@@ -7,7 +7,7 @@ AJ = AcroJumper;
         
 % Control = ControllerF(Params(3:21));
 
-Control = ControllerOrd2Seg([0.02,0.08,0.12],Params(6),Params(7),Params(8),Params(9));
+Control = ControllerOrd2Seg([Params(3),Inf,Inf],10*sign(Params(4)),[],[],[]);
 Sim = Simulation(AJ, Control);
 
 Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].';
@@ -35,6 +35,6 @@ while ~EndCond
         EndCond = 1;
     end
 end
-fitness = GetFit(AJ, Control, X, Time, Te, Ie);
+fitness = FitLiftOff(AJ,X(end,:));
 end
 
