@@ -22,16 +22,16 @@ end
 opt = odeset('reltol', 1e-12, 'abstol', 1e-12, 'Events', @Sim.Events);
 EndCond = 0;
 [Time, X, Te, ~, Ie] = ode45(@Sim.Derivative, [0 inf], Sim.IC, opt);
+Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
 if Ie(end) >= 5
     EndCond = 1;
 end
 while ~EndCond
-    Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
     [tTime, tX, tTe, ~,tIe] = ode45(@Sim.Derivative,[Time(end) inf], Xf, opt);
     Ie = [Ie; tIe]; Te = [Te; tTe]; %#ok
     X  = [X; tX]; Time = [Time; tTime]; %#ok
-    if Ie(end) >= 5
-        Sim.Mod.HandleEvent(Ie(end),X(end,:));
+    Sim.Mod.HandleEvent(Ie(end),X(end,:));
+    if Ie(end) >= 5 || AJ.jumpedAgain
         EndCond = 1;
     end
 end
