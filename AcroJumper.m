@@ -12,6 +12,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
         jumpedAgain = 0;            % did it jump more than once?
         LiftOff = [];               % lift off coordinates
         LandingQR = [];             % coordinates of Q/R at landing
+        Painleve = [];
         
         % Slip direction
         sgn_slip = [];
@@ -267,7 +268,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     AJ.Phase = 'Flight';
                     Xdot = AJ.Derivative([], Xi);
                     if Xdot(4) < 0
-                        disp('Painleve paradox');
+                        AJ.Painleve = 1;
                     end
                 case 4 % P collision
                     Xf = impact_law(AJ, Xi);
