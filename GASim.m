@@ -23,7 +23,7 @@ opt = odeset('reltol', 1e-12, 'abstol', 1e-12, 'Events', @Sim.Events);
 EndCond = 0;
 [Time, X, Te, ~, Ie] = ode45(@Sim.Derivative, [0 inf], Sim.IC, opt);
 Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
-if Ie(end) >= 5
+if Ie(end) >= 3
     EndCond = 1;
 end
 while ~EndCond
@@ -31,11 +31,10 @@ while ~EndCond
     Ie = [Ie; tIe]; Te = [Te; tTe]; %#ok
     X  = [X; tX]; Time = [Time; tTime]; %#ok
     Sim.Mod.HandleEvent(Ie(end),X(end,:));
-    if Ie(end) >= 5 || AJ.jumpedAgain
+    if Ie(end) >= 3
         EndCond = 1;
     end
 end
 fitness = GetFit(AJ, Control, X, Time, Te, Ie);
-
 end
 
