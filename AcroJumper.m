@@ -3,7 +3,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
 
     properties
         m  = 0.3;                   % mass
-        l  = 0.15;                  % length
+        l  = 0.15;                  % AJ.lgth
         Ic = 0.5*0.3*(2*0.15)^2;    % moment of inertia
         g  = 10;                    % earth's gravity
         mu = 0.3;                   % coefficient of friction
@@ -63,10 +63,10 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     Pos = [X(1) + AJ.l*cos(X(5)), X(3) + AJ.l*sin(X(5))];
                 case 'CM2'
                     Pos = [X(1) + 2*AJ.l*cos(X(5)), X(3) + 2*AJ.l*sin(X(5))] +...
-                        [AJ.l*cos(X(5) + X(7)) AJ.l*sin(X(5) + X(7))];
+                        [AJ.l*cos(X(5) + X(7)), AJ.l*sin(X(5) + X(7))];
                 case 'CM'
                     CM2 = [X(1) + 2*AJ.l*cos(X(5)), X(3) + 2*AJ.l*sin(X(5))] +...
-                        [AJ.l*cos(X(5) + X(7)) AJ.l*sin(X(5,:) + X(7))];
+                        [AJ.l*cos(X(5) + X(7)), AJ.l*sin(X(5) + X(7))];
                     CM1 = [X(1) + AJ.l*cos(X(5)), X(3) + AJ.l*sin(X(5))];
                     Pos = (CM1 + CM2)/2;
                 otherwise
@@ -82,8 +82,18 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                 otherwise
                     error('No such position');
             end
-        end       
+        end  
         
+        function [xdotdot, ydotdot] = GetAcc(AJ, X, which)
+        switch which
+            case 'COM'
+                Xdot = AJ.Derivative([],X);
+                x = X(1); dx = X(2); y = X(3); dy = X(4); th1 = X(5); dth1 = X(6); %#ok
+                th2 = X(7); dth2 = X(8); ddx = Xdot(2); ddy = Xdot(4); ddth1 = Xdot(6); ddth2 = Xdot(8);
+                xdotdot = ddx - (3*ddth1*AJ.l*sin(th1))/2 - (dth1^2*AJ.l*cos(th1 + th2))/2 - (dth2^2*AJ.l*cos(th1 + th2))/2 - (3*dth1^2*AJ.l*cos(th1))/2 - (ddth1*AJ.l*sin(th1 + th2))/2 - (ddth2*AJ.l*sin(th1 + th2))/2 - dth1*dth2*AJ.l*cos(th1 + th2);
+                ydotdot = ddy + (3*ddth1*AJ.l*cos(th1))/2 - (dth1^2*AJ.l*sin(th1 + th2))/2 - (dth2^2*AJ.l*sin(th1 + th2))/2 - (3*dth1^2*AJ.l*sin(th1))/2 + (ddth1*AJ.l*cos(th1 + th2))/2 + (ddth2*AJ.l*cos(th1 + th2))/2 - dth1*dth2*AJ.l*sin(th1 + th2);
+        end
+        end
         function [Ft, Fn] = GetReactionForces(AJ, X)
         x = X(1); dx = X(2); y = X(3); dy = X(4); th1 = X(5); dth1 = X(6); %#ok
         th2 = X(7); dth2 = X(8);

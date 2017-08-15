@@ -14,6 +14,11 @@ r2 = Q + [len*cos(th1 + th2), len*sin(th1 + th2)];
 v1 = (jacobian(r1, q)*dq).';
 v2 = (jacobian(r2, q)*dq).';
 
+vc = (v1 + v2)/2;
+
+aCOM = (jacobian(vc,q)*dq).' + (jacobian(vc,dq)*ddq).';
+
+
 % Kinetic energy
 KE = 1/2*mass*(v1*v1.') + 1/2*mass*(v2*v2.') + 1/2*Ic*dth1^2 + 1/2*Ic*(dth2+dth1)^2;
 

@@ -1,10 +1,6 @@
 AJ = AcroJumper;
 AJF = AcroJumper;
-
-Ft = []; Fn = [];
-% liftoff = load('Workspaces/GAsol_LO_fit-1.8175_d14_h13_m46.mat');
-% liftoff = liftoff.GAsol;
-
+Ft = []; Fn = []; COM = [];
 Control = ControllerOrd2Seg(Params(3:5),Params(6),Params(7),Params(8),Params(9));
 Sim = Simulation(AJ, Control);
 
@@ -17,6 +13,7 @@ for ii = 1:length(X(:,1))
     AJF = Sim.Mod.copy;
     AJF.tau = Sim.Con.calc_tau(Time(ii));
     [Ft(ii) Fn(ii)] = AJF.GetReactionForces(X(ii,:)); %#ok
+    COM(ii,:) = AJF.GetPos(X(ii,:),'CM'); %#ok
 end
 Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
 if ~Sim.Mod.landed
@@ -33,7 +30,10 @@ while ~EndCond
         AJF = Sim.Mod.copy;
         AJF.tau = Sim.Con.calc_tau(tTime(ii));
         [tFt(ii) tFn(ii)] = AJF.GetReactionForces(tX(ii,:)); %#ok
+        tCOM(ii,:) = AJF.GetPos(tX(ii,:),'CM'); %#ok
     end
+    COM = [COM; tCOM]; %#ok
+    tCOM = [];
     Ft = [Ft, tFt]; Fn = [Fn, tFn]; %#ok
     tFt = []; tFn = []; tX = []; tTime = [];
     Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
@@ -46,10 +46,13 @@ while ~EndCond
 end
 %% Animate simulation
 figure(2)
+path = animatedline('color', 'b', 'linewidth', 2);
 for ii = 1:length(Time)-1
     Render(AJ,Time(ii),X(ii,:),1);
     dt = Time(ii+1) - Time(ii);
-    pause(dt*10);
+    addpoints(path, COM(ii,1), COM(ii,2));
+    drawnow;
+%     pause(dt);
 end
 figure(3)
 tau = Time;
