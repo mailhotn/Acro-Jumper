@@ -12,7 +12,6 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
         jumpedAgain = 0;            % did it jump more than once?
         LiftOff = [];               % lift off coordinates
         LandingQR = [];             % coordinates of Q/R at landing
-        Painleve = 0;
         
         % Slip direction
         sgn_slip = [];
@@ -145,7 +144,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     [Ft, Fn] = GetReactionForces(AJ, X);
                     value(1) =  abs(AJ.mu*Fn) - abs(Ft);
                     % Event 3 - Liftoff!
-                    value(3) = Fn;  
+                    value(3) = Fn;
                     % Event 5 - Q collision
                     Q = GetPos(AJ, X, 'Q');
                     value(5) = Q(2);
@@ -171,7 +170,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     value(2) = X(2)/AJ.sgn_slip;
                     % Event 3 - Liftoff!
                     [~, Fn] = GetReactionForces(AJ, X);
-                    value(3) = Fn;              
+                    value(3) = Fn;
                     % Event 5 - Q collision
                     Q = GetPos(AJ, X, 'Q');
                     value(5) = Q(2);
@@ -266,10 +265,6 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     end
                     AJ.jumped = 1;
                     AJ.Phase = 'Flight';
-                    Xdot = AJ.Derivative([], Xi);
-                    if Xdot(4) < 0
-                        AJ.Painleve = 1;
-                    end
                 case 4 % P collision
                     Xf = impact_law(AJ, Xi);
                     if abs(Xf(2)) > 0

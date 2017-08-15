@@ -1,4 +1,6 @@
 AJ = AcroJumper;
+AJF = AcroJumper;
+
 Ft = []; Fn = [];
 % liftoff = load('Workspaces/GAsol_LO_fit-1.8175_d14_h13_m46.mat');
 % liftoff = liftoff.GAsol;
@@ -8,15 +10,19 @@ Sim = Simulation(AJ, Control);
 
 Sim.IC = [0 0 0 0 Params(1) 0 Params(2) 0].'; 
 Sim.GetInitPhase;
-opt = odeset('reltol', 1e-12, 'abstol', 1e-12, 'Events', @Sim.Events);
+opt = odeset('reltol', 1e-9, 'abstol', 1e-9, 'Events', @Sim.Events);
 EndCond = 0;
 [Time, X, Te, ~, Ie] = ode45(@Sim.Derivative, [0 inf], Sim.IC, opt);
-for ii = 1:length(X)
-    AJ.tau = Sim.Con.calc_tau(Time(ii));
-    [Ft(ii) Fn(ii)] = AJ.GetReactionForces(X(ii,:)); %#ok
+for ii = 1:length(X(:,1))
+    AJF = Sim.Mod.copy;
+    AJF.tau = Sim.Con.calc_tau(Time(ii));
+    [Ft(ii) Fn(ii)] = AJF.GetReactionForces(X(ii,:)); %#ok
 end
 Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
-if Ie(end) >= 5 || AJ.Painleve
+if ~Sim.Mod.landed
+    Ie(Ie == 4) = [];
+end
+if Ie(end) >= 5
     EndCond = 1;
 end
 while ~EndCond
@@ -24,21 +30,25 @@ while ~EndCond
     Ie = [Ie; tIe]; Te = [Te; tTe]; %#ok
     X  = [X; tX]; Time = [Time; tTime]; %#ok
     for ii = 1:length(tX(:,1))
-        AJ.tau = Sim.Con.calc_tau(tTime(ii));
-        [tFt(ii) tFn(ii)] = AJ.GetReactionForces(tX(ii,:)); %#ok
+        AJF = Sim.Mod.copy;
+        AJF.tau = Sim.Con.calc_tau(tTime(ii));
+        [tFt(ii) tFn(ii)] = AJF.GetReactionForces(tX(ii,:)); %#ok
     end
     Ft = [Ft, tFt]; Fn = [Fn, tFn]; %#ok
     tFt = []; tFn = []; tX = []; tTime = [];
     Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
-    if Ie(end) >= 5 || AJ.Painleve
+    if ~Sim.Mod.landed
+        Ie(Ie == 4) = [];
+    end
+    if Ie(end) >= 5
         EndCond = 1;
     end
 end
 %% Animate simulation
 figure(2)
-for i = 1:length(Time)-1
-    Render(AJ,Time(i),X(i,:),1);
-    dt = Time(i+1) - Time(i);
+for ii = 1:length(Time)-1
+    Render(AJ,Time(ii),X(ii,:),1);
+    dt = Time(ii+1) - Time(ii);
     pause(dt*10);
 end
 figure(3)

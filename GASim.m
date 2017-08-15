@@ -3,6 +3,7 @@ function fitness = GASim(Params)
 
 % liftoff = load('Workspaces/GAsol_LO_fit-1.8175_d14_h13_m46.mat');
 % liftoff = liftoff.GAsol;
+Ft = []; Fn = [];
 AJ = AcroJumper;
 Control = ControllerOrd2Seg(Params(3:5),Params(6),Params(7),Params(8),Params(9));
 Sim = Simulation(AJ, Control);
@@ -16,22 +17,29 @@ if R(2) < 0
     return
 end
 
-opt = odeset('reltol', 1e-12, 'abstol', 1e-12, 'Events', @Sim.Events);
+opt = odeset('reltol', 1e-9, 'abstol', 1e-9, 'Events', @Sim.Events);
 EndCond = 0;
 [Time, X, Te, ~, Ie] = ode45(@Sim.Derivative, [0 inf], Sim.IC, opt);
 Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
-if Ie(end) >= 5 || AJ.Painleve
+if ~Sim.Mod.landed
+    Ie(Ie == 4) = [];
+end
+if Ie(end) >= 5
     EndCond = 1;
 end
 while ~EndCond
     [tTime, tX, tTe, ~,tIe] = ode45(@Sim.Derivative,[Time(end) inf], Xf, opt);
     Ie = [Ie; tIe]; Te = [Te; tTe]; %#ok
     X  = [X; tX]; Time = [Time; tTime]; %#ok
+    tX = []; tTime = [];
     Xf = Sim.Mod.HandleEvent(Ie(end), X(end,:));
-    if Ie(end) >= 5 || AJ.Painleve
+    if ~Sim.Mod.landed
+        Ie(Ie == 4) = [];
+    end
+    if Ie(end) >= 5
         EndCond = 1;
     end
 end
-fitness = GetFit(AJ, Control, X, Time, Te, Ie);
+fitness = GetFit(Sim.Mod, Control, X, Time, Te, Ie);
 end
 
