@@ -267,7 +267,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     AJ.Phase = 'Flight';
                 case 4 % P collision
                     Xf = impact_law(AJ, Xi);
-                    if abs(Xf(2)) > 0
+                    if abs(Xf(2)) > 1e-14
                         AJ.Phase = 'Slip';
                         AJ.sgn_slip = sign(Xf(2));
                     else
