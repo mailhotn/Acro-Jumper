@@ -13,7 +13,7 @@ function status = Render(AJ, t, X, flag)
         AJ.RenderObj.nL2 = DrawLink(AJ, Q(1), Q(2), R(1), R(2), 0, []);
 
         axis equal
-        axis([-1 1 0 1])
+        axis([-0.5 1 0 1])
         
         % Finished rendering
         % Call function again to proceed with the code below
