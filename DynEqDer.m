@@ -87,7 +87,3 @@ sol_FF = M\(Fq - C - G);
 
 A = simplify(Wn*M^-1*(C + G - Fq) - Wndot*dq);
 B = simplify(Wn*M^-1*((Wn - sigma*mju*Wt).'));
-
-
-
-

@@ -4,6 +4,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
     properties
         m  = 0.3;                   % mass
         l  = 0.15;                  % AJ.lgth
+        l  = 0.15;                  % length
         Ic = 0.5*0.3*(2*0.15)^2;    % moment of inertia
         g  = 10;                    % earth's gravity
         mu = 0.3;                   % coefficient of friction
@@ -83,6 +84,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     error('No such position');
             end
         end  
+        end       
         
         function [xdotdot, ydotdot] = GetAcc(AJ, X, which)
         switch which
@@ -280,12 +282,25 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                     if abs(Xf(2)) > 1e-14
                         AJ.Phase = 'Slip';
                         AJ.sgn_slip = sign(Xf(2));
+                        [~, Fn] = AJ.GetReactionForces(Xf);
+                        if Fn < 0
+                            AJ.Phase = 'Flight';
+                            AJ.jumpedAgain = 1;
+                        end
                     else
                         AJ.Phase = 'Stick';
                         [Ft, Fn] = AJ.GetReactionForces(Xf);
                         if abs(Ft) >= AJ.mu*abs(Fn)
                             AJ.sgn_slip = -sign(Ft);
                             AJ.Phase = 'Slip';
+                        if Fn < 0
+                            AJ.Phase = 'Flight';
+                            AJ.jumpedAgain = 1;
+                        else
+                            if abs(Ft) >= AJ.mu*abs(Fn)
+                                AJ.sgn_slip = -sign(Ft);
+                                AJ.Phase = 'Slip';
+                            end
                         end
                     end
                     AJ.landed = 1;
