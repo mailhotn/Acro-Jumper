@@ -3,7 +3,6 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
 
     properties
         m  = 0.3;                   % mass
-        l  = 0.15;                  % AJ.lgth
         l  = 0.15;                  % length
         Ic = 0.5*0.3*(2*0.15)^2;    % moment of inertia
         g  = 10;                    % earth's gravity
@@ -83,8 +82,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                 otherwise
                     error('No such position');
             end
-        end  
-        end       
+        end        
         
         function [xdotdot, ydotdot] = GetAcc(AJ, X, which)
         switch which
@@ -96,6 +94,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                 ydotdot = ddy + (3*ddth1*AJ.l*cos(th1))/2 - (dth1^2*AJ.l*sin(th1 + th2))/2 - (dth2^2*AJ.l*sin(th1 + th2))/2 - (3*dth1^2*AJ.l*sin(th1))/2 + (ddth1*AJ.l*cos(th1 + th2))/2 + (ddth2*AJ.l*cos(th1 + th2))/2 - dth1*dth2*AJ.l*sin(th1 + th2);
         end
         end
+        
         function [Ft, Fn] = GetReactionForces(AJ, X)
         x = X(1); dx = X(2); y = X(3); dy = X(4); th1 = X(5); dth1 = X(6); %#ok
         th2 = X(7); dth2 = X(8);
@@ -289,10 +288,7 @@ classdef AcroJumper < handle & matlab.mixin.Copyable
                         end
                     else
                         AJ.Phase = 'Stick';
-                        [Ft, Fn] = AJ.GetReactionForces(Xf);
-                        if abs(Ft) >= AJ.mu*abs(Fn)
-                            AJ.sgn_slip = -sign(Ft);
-                            AJ.Phase = 'Slip';
+                        [Ft, Fn] = AJ.GetReactionForces(Xf); 
                         if Fn < 0
                             AJ.Phase = 'Flight';
                             AJ.jumpedAgain = 1;
